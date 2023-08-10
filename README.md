@@ -24,7 +24,16 @@ We extends [GraphQL Mobius](https://github.com/SaltyAom/mobius) which allows us 
 
 React Mobius use Proxy recursively to collect accessed property, and turns it into GraphQL Query and query via Mobius while providing full type safety experience from Mobius, creating an illusion of object.
 
-However, as Proxy is recursively used and there's no way to detect the last used property of the proxy, we introduced a ($) prefix to unwrap the proxy into primitive data, if you have better approach, feels free to open the issue and let us know.
+React Mobius has 2 mode:
+1. TypeDefs only
+As Proxy is recursively used and there's no way to detect the last used property of the proxy, we introduced a ($) prefix to unwrap the proxy into primitive data, if you have better approach, feels free to open the issue and let us know.
+
+2. Literal Schema:
+Mobius can parse schema and quickly evaluate primitive type and detect the field recursively to stop the recursive proxy type.
+
+This mode allows us to ditch prefix ($) entirely.
+
+This is a good choice when you are using a public API, and is ok to expose it on client.
 
 ## Prerequisted
 1. TypeScript > 5.0
@@ -33,6 +42,11 @@ However, as Proxy is recursively used and there's no way to detect the last used
 ## Getting Start
 1. Define a GraphQL Schema in string **(must be const)**
 2. Cast schema to type using `typeof` (or pass it as literal params in constructor)
+
+Then you can either use 2 Mobius mode:
+
+1. TypeDefs only
+Using typeDefs only (required $ prefix when accessing value)
 
 ```tsx
 import { createMobius } from '@graphql-mobius/react'
@@ -50,6 +64,39 @@ const typeDefs = `
 
 export const { useMobius } = createMobius<typeof typeDefs>({
     url: 'https://api.saltyaom.com/graphql'
+})
+
+const page = () => {
+    const api = useMobius()
+
+    return (
+        <main>
+            <h1>{api.hello({ word: "World" }).$A}</h1>
+        </main>
+    )
+}
+```
+
+2. Schema Literal
+Passing a schema literal to Mobius
+
+```tsx
+import { createMobius } from '@graphql-mobius/react'
+
+const typeDefs = `
+    type A {
+        A: String!
+        B: String!
+    }
+
+    type Query {
+        hello(word: String!): A!
+    }
+`
+
+export const { useMobius } = createMobius({
+    url: 'https://api.saltyaom.com/graphql',
+    typeDefs
 })
 
 const page = () => {

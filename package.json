@@ -1,6 +1,6 @@
 {
     "name": "@graphql-mobius/react",
-    "version": "0.0.0-exp.1",
+    "version": "0.0.0-exp.2",
     "description": "GraphQL Mobius binding for React",
     "author": {
         "name": "saltyAom",

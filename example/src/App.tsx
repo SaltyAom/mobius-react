@@ -18,28 +18,25 @@ export default function Page() {
                 }}
             />
 
-            <h1 className="text-3xl mb-2">{data?.title.$display}</h1>
-            <p>{data?.info.$amount} pages</p>
-            <p>{data?.info.$favorite} favorites</p>
+            <h1 className="text-3xl mb-2">{data?.title.display}</h1>
+            <p>{data?.info.amount} pages</p>
+            <p>{data?.info.favorite} favorites</p>
 
-            <img src={data?.images.cover.$link} />
+            <img src={data?.images.cover.link} />
 
             <ul>
-                {data?.images.pages.map(
-                    ({ $link, info: { $width, $height } }) => (
-                        <img
-                            className="w-full h-full bg-gray-100"
-                            key={$link}
-                            src={$link}
-                            loading="lazy"
-                            style={{
-                                aspectRatio: $width / $height
-                            }}
-                        />
-                    )
-                )}
+                {data?.images.pages.map(({ link, info: { width, height } }) => (
+                    <img
+                        className="w-full h-full bg-gray-100"
+                        key={link}
+                        src={link}
+                        loading="lazy"
+                        style={{
+                            aspectRatio: width / height
+                        }}
+                    />
+                ))}
             </ul>
-
         </main>
     )
 }

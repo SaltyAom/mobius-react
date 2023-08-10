@@ -283,6 +283,7 @@ const typeDefs = /* GraphQL */ `
     }
 `
 
-export const { useMobius } = createMobius<typeof typeDefs>({
-    url: 'https://seele.hifumin.app/graphql'
+export const { useMobius } = createMobius({
+    url: 'https://seele.hifumin.app/graphql',
+    typeDefs
 })

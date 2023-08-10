@@ -10,6 +10,14 @@ import React, {
     type SetStateAction,
     type MutableRefObject
 } from 'react'
+import {
+    AddSuffix,
+    SchemaModel,
+    access,
+    addSuffix,
+    createMap,
+    gqlTypes
+} from './utils'
 
 type Timeout = ReturnType<typeof setTimeout>
 type Param = string | Record<string, unknown>
@@ -26,6 +34,7 @@ type MobiusContext = {
         s: string[]
         d: Record<string, string>
     }>['current']
+    schema: SchemaModel | null
 }
 
 const model = <></>
@@ -60,22 +69,54 @@ function deepMerge(
 }
 
 const createMobiusProxy = (context: MobiusContext): any => {
-    const { params, state, dispatch, ref, update } = context
+    const { params, state, dispatch, ref, update, schema } = context
 
     return new Proxy(() => {}, {
-        get(target, prop: string) {
-            switch (prop[0]) {
-                case '$':
-                    if (
-                        typeof state === 'object' &&
-                        state?.[prop as keyof typeof state]
-                    )
-                        return state[prop as keyof typeof state]
+        get(target, prop: string | typeof Symbol.toPrimitive) {
+            if (prop === Symbol.toPrimitive) return undefined
 
-                    dispatch([...params, prop.slice(1)])
+            if (schema) {
+                const type = access(schema, [...params, prop])
+
+                const hasValue =
+                    typeof state === 'object' &&
+                    state?.[prop as keyof typeof state]
+
+                if (hasValue && type === null) return null
+
+                if (gqlTypes.includes(type)) {
+                    if (hasValue) return state?.[prop as keyof typeof state]
+
+                    dispatch([...params, prop])
 
                     return null
-            }
+                }
+
+                return createMobiusProxy({
+                    ...context,
+                    params: [...params, prop],
+                    state:
+                        typeof state === 'object' &&
+                        state?.[prop as keyof typeof state]
+                            ? typeof state?.[prop as keyof typeof state] ===
+                              'function'
+                                ? state
+                                : state?.[prop as keyof typeof state]
+                            : null
+                })
+            } else
+                switch (prop[0]) {
+                    case '$':
+                        if (
+                            typeof state === 'object' &&
+                            state?.[prop as keyof typeof state]
+                        )
+                            return state[prop as keyof typeof state]
+
+                        dispatch([...params, prop.slice(1)])
+
+                        return null
+                }
 
             return createMobiusProxy({
                 ...context,
@@ -149,53 +190,28 @@ function nest(initial: Record<string, unknown>, arr: Param[]) {
     return initial
 }
 
-type AddSuffix<T> = {
-    [K in keyof T as NonNullable<T[K]> extends Record<string, unknown>
-        ? K
-        : NonNullable<T[K]> extends Function
-        ? K
-        : NonNullable<T[K]> extends readonly unknown[]
-        ? K
-        : `$${string & K}`]: T[K] extends (...args: any[]) => infer R
-        ? (...args: Parameters<T[K]>) => AddSuffix<R>
-        : NonNullable<T[K]> extends Record<string, unknown>
-        ? AddSuffix<T[K]>
-        : NonNullable<T[K]> extends readonly unknown[]
-        ? AddSuffix<NonNullable<T[K]>[number]>[]
-        : T[K]
-}
+type IsTemplateLiteral<T extends string> = T extends `${string}${infer R}`
+    ? true
+    : false
 
-const addSuffix = (input: any): Record<string, unknown> => {
-    if (typeof input !== 'object' || input === null) return input
-
-    if (Array.isArray(input))
-        return input.map((item) =>
-            typeof item !== 'object' ? `$${item}` : addSuffix(item)
-        ) as any
-
-    const newObj: any = {}
-
-    for (const key in input) {
-        if (!(key in input)) continue
-
-        if (typeof input[key] !== 'object') newObj['$' + key] = input[key]
-        else newObj[key] = addSuffix(input[key])
-    }
-
-    return newObj
-}
-
-export const createMobius = <T extends string, Scalars extends Record<string, unknown> = {}>(
-    config?: Mobius['config']
+export const createMobius = <
+    R extends string | undefined = undefined,
+    Scalars extends Record<string, unknown> = {},
+    T extends string = string
+>(
+    config?: Mobius<T>['config']
 ): {
     mobius: Mobius<T, Scalars>
-    useMobius: (() => CreateMobius<T> extends {
+    useMobius: () => CreateMobius<R extends string ? R : T> extends {
         Query: infer Query
         Mutation: infer Mutation
-    }? AddSuffix<Query>
-    : {})
+    }
+        ? R extends T
+            ? AddSuffix<Query>
+            : Query
+        : {}
 } => {
-    const mobius = new Mobius(config)
+    const mobius = new Mobius<any>(config)
 
     return {
         mobius: mobius as any,
@@ -235,7 +251,13 @@ export const createMobius = <T extends string, Scalars extends Record<string, un
                 mobius
                     .query(query)
                     .then((x) => {
-                        if (x) update(deepMerge(state, addSuffix(x))) as any
+                        if (x)
+                            update(
+                                deepMerge(
+                                    state,
+                                    config?.typeDefs ? x : addSuffix(x)
+                                )
+                            ) as any
                     })
                     .finally(() => {
                         ref.t = null
@@ -250,7 +272,8 @@ export const createMobius = <T extends string, Scalars extends Record<string, un
                 state,
                 update,
                 dispatch,
-                ref
+                ref,
+                schema: createMap(config?.typeDefs)
             }) as any
         }
     }
