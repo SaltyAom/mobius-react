@@ -1,12 +1,14 @@
 {
     "name": "@graphql-mobius/react",
-    "version": "0.0.0-exp.0",
+    "version": "0.0.0-exp.1",
     "description": "GraphQL Mobius binding for React",
     "author": {
         "name": "saltyAom",
         "url": "https://github.com/SaltyAom",
         "email": "saltyaom@gmail.com"
     },
+    "main": "./dist/index.js",
+    "module": "./dist/index.js",  
     "types": "./dist/index.d.ts",
     "exports": {
         "bun": "./dist/index.js",
@@ -56,6 +58,7 @@
         "typescript": "^5.1.6"
     },
     "peerDependencies": {
-        "react": ">= 17.0.0"
+        "react": ">= 17.0.0",
+        "graphql-mobius": ">= 0.1.10"
     }
 }
