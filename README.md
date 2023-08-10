@@ -43,7 +43,7 @@ This is a good choice when you are using a public API, and is ok to expose it on
 1. Define a GraphQL Schema in string **(must be const)**
 2. Cast schema to type using `typeof` (or pass it as literal params in constructor)
 
-Then you can either use 2 Mobius mode:
+Then you can either use 1 of 2 Mobius mode:
 
 1. TypeDefs only
 Using typeDefs only (required $ prefix when accessing value)
