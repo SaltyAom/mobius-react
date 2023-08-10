@@ -1,0 +1,61 @@
+{
+    "name": "@graphql-mobius/react",
+    "version": "0.0.0",
+    "description": "GraphQL Mobius binding for React",
+    "author": {
+        "name": "saltyAom",
+        "url": "https://github.com/SaltyAom",
+        "email": "saltyaom@gmail.com"
+    },
+    "types": "./dist/index.d.ts",
+    "exports": {
+        "bun": "./dist/index.js",
+        "node": "./dist/index.js",
+        "require": "./dist/index.js",
+        "import": "./dist/index.js",
+        "default": "./dist/index.js",
+        "types": "./dist/index.d.ts"
+    },
+    "keywords": [
+        "elysia",
+        "graphql",
+        "mobius",
+        "graphql-mobius",
+        "react"
+    ],
+    "homepage": "https://github.com/SaltyAom/mobius",
+    "repository": {
+        "type": "git",
+        "url": "://github.com/SaltyAom/mobius"
+    },
+    "bugs": "://github.com/SaltyAom/mobius/issues",
+    "license": "MIT",
+    "scripts": {
+        "dev": "bun run --watch example/index.ts",
+        "test": "bun wiptest && npm run test:types",
+        "test:types": "tsc --project tsconfig.test.json",
+        "build": "rimraf dist && bun build.ts && tsc --project tsconfig.build.json",
+        "release": "npm run build && npm run test && npm publish --access public",
+        "trace": "tsc --generateTrace ./trace --incremental false"
+    },
+    "dependencies": {
+        "graphql-mobius": "^0.1.10"
+    },
+    "devDependencies": {
+        "@types/node": "^20.1.4",
+        "@types/react": "^18.2.19",
+        "@types/react-dom": "^18.2.7",
+        "bun-types": "^0.7.0",
+        "eslint": "^8.40.0",
+        "expect-type": "^0.16.0",
+        "graphql": "^16.7.1",
+        "graphql-yoga": "^4.0.3",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "rimraf": "4.4.1",
+        "typescript": "^5.1.6"
+    },
+    "peerDependencies": {
+        "react": ">= 17.0.0"
+    }
+}
